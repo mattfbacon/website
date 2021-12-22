@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512">
+	<path d="M0 0h512v113.891L0 7.855z" fill="#e43333" />
+	<path d="M0 7.855l512 106.036v97.54L0 105.396z" fill="#f27c31" />
+	<path d="M0 300.476l512 106.036v97.54L0 398.017z" fill="#4b46d0" />
+	<path d="M0 202.936l512 106.036v97.54L0 300.477z" fill="#64d731" />
+	<path d="M0 105.395l512 106.036v97.54L0 202.936z" fill="#efe536" />
+	<path d="M512 511.907H0V398.016l512 106.036z" fill="#bb47d6" />
+	<style>
+		@media (prefers-color-scheme: dark) { :root { filter: contrast(1) brightness(1.3); } }
+	</style>
+</svg>
