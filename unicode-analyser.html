@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Unicode Analyser</title>
+	<meta charset="UTF-8">
+	<meta name="robots" content="index, follow">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<style>
+.m {
+	font-family: monospace;
+}
+th, td {
+	border: 1px solid black;
+	padding: .2rem;
+}
+table {
+	border-collapse:collapse;
+}
+	</style>
+</head>
+<body>
+	<h1>Unicode Analyser</h1>
+	<h2><label for="input">Input</label></h2>
+	<textarea id="input"></textarea>
+	<h2>Output</h2>
+	<table>
+		<thead><tr>
+			<th>Idx</th>
+			<th>Grapheme</th>
+			<th>Idx</th>
+			<th>Char</th>
+			<th>(Hex)</th>
+			<th>Idx</th>
+			<th>Bytes</th>
+		</tr></thead>
+		<tbody id="output">
+		</tbody>
+	</table>
+	<script>
+const _encoder = new TextEncoder();
+const str_to_bytes = x => [..._encoder.encode(x)];
+
+const _segmenter = new Intl.Segmenter('en');
+const split_graphemes = x => _segmenter.segment(x);
+
+const el = (name, children, attrs) => {
+	const ret = document.createElement(name);
+	if (typeof children == 'undefined') {
+		//
+	} else if (Array.isArray(children)) {
+		ret.replaceChildren(...children);
+	} else {
+		ret.innerText = children;
+	}
+	if (typeof attrs != 'undefined') {
+		for (const [name, value] of Object.entries(attrs)) {
+			ret.setAttribute(name, value);
+		}
+	}
+	return ret;
+};
+
+function utf8_decode_char(bytes) {
+	switch (bytes.length) {
+		case 1:
+			return bytes[0];
+		case 2:
+			return ((bytes[0] & 0b11111) << 6) | (bytes[1] & 0b111111);
+		case 3:
+			return ((bytes[0] & 0b1111) << 12) | ((bytes[1] & 0b111111) << 6) | (bytes[2] & 0b111111);
+		case 4:
+			return ((bytes[0] & 0b111) << 18) | ((bytes[1] & 0b111111) << 12) | ((bytes[2] & 0b111111) << 6) | (bytes[3] & 0b111111);
+		default:
+			throw new Exception("invalid utf8");
+	}
+}
+
+input.addEventListener('input', (e) => {
+	const input = e.target.value;
+
+	const rows = [];
+
+	let grapheme_idx = 0;
+	let char_idx = 0;
+	let byte_idx = 0;
+
+	for (const { segment: grapheme } of split_graphemes(input)) {
+		const grapheme_start_i = rows.length;
+
+		for (const char of [...grapheme]) {
+			const bytes = str_to_bytes(char);
+
+			rows.push(el('tr', [
+				el('td', char_idx),
+				el('td', char),
+				el('td', utf8_decode_char(bytes).toString(16).padStart(2, '0'), {'class':'m'}),
+				el('td', `${byte_idx}..${byte_idx + bytes.length}`),
+				el('td', bytes.map(byte => byte.toString(16).padStart(2, '0')).join(''), {'class':'m'}),
+			]));
+
+			++char_idx;
+			byte_idx += bytes.length;
+		}
+
+		const rowspan = rows.length - grapheme_start_i;
+		rows[grapheme_start_i].prepend(el('td', grapheme_idx, {rowspan}), el('td', grapheme, {rowspan}));
+		++grapheme_idx;
+	}
+
+	output.replaceChildren(...rows);
+});
+	</script>
+</body>
+</html>
